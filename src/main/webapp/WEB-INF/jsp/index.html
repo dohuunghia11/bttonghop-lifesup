@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<meta charset='utf-8'>
+<title>Do Huu Nghia</title>
+<link rel="stylesheet"
+	href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+<script
+	src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.7/angular.js">
+
+</script>
+<!-- <script type="text/javascript" src="./jsp/page.js"></script>  -->
+<link rel="stylesheet" type="text/css" href="./page.css">
+
+</head>
+
+<body>
+	<div class="container" ng-app="UserManagement"
+		ng-controller="UserController" ng-submit="submitUser()" name="vali">
+		<div class="row">
+			<div class="col-md-10">
+				<h2>Quản lý người dùng</h2>
+				<div class="row">
+					<form class="form-horizontal" >
+						<div class="col">
+							<label class="form-control">{{userForm.id}}</label>
+						</div>
+						<div class="col">
+							<label>Name</label> <input type="text" ng-model="userForm.name" class="form-control"  name="name" ng-required="true">
+					<span ng-show="vali.name.$error.required" class="error-mess">Không được để trống</span>
+						</div>
+						<div class="col">
+						<label>Địa chỉ</label> 	<input type="text" ng-model="userForm.diachi" class="form-control"  name="name" ng-required="true">
+					<span ng-show="vali.name.$error.required" class="error-mess">Không được để trống</span>
+						</div>
+					</form>
+				</div>
+				<div class="row">
+					<div class="btn">
+						<button type="button" ng-click="createUser()">Thêm</button>
+						<button type="reset" ng-click="resetUser()">Reset</button>
+					</div>
+				</div>
+				<div class="col-sm-13 col-md-13">
+					<div class="row-text-center">
+						<h1 style="font-weight: bold;">Danh sách người dùng</h1>
+					</div>
+					<div class="container1">
+						<div class="row">
+							<div class="col-sm-2 list-group-item">ID</div>
+							<div class="col-sm-3 list-group-item">Name</div>
+							<div class="col-sm list-group-item">Địa chỉ</div>
+							<div class="col-sm list-group-item">Action</div>
+						</div>
+						<div class="bd-example" ng-repeat="user in users">
+							<div class="row" ng-hide="edit">
+
+								<div class="col-sm-2 list-group-item">{{user.id}}</div>
+								<div class="col-sm-3 list-group-item">{{user.name}}</div>
+								<div class="col-sm list-group-item">{{user.diachi}}</div>
+								<div class="col-sm list-group-item">
+									<span class="pull-right">
+										<button type="button" name="button"
+											class="btn btn-outline-info btn-sm"
+											ng-click="updateUser(user)">Sửa</button>
+										<button type="button" name="button"
+											class="btn btn-outline-danger btn-sm"
+											ng-click="deleteUser(user)">Xóa</button>
+									</span>
+								</div>
+							</div>
+
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+
+</html>
+<script>
+	var app = angular.module("UserManagement", []);
+	app
+			.controller(
+					"UserController",
+					function($scope, $http) {
+						$scope.users = [];
+						$scope.userForm = {
+							id : "-1",
+							name : "",
+							diachi : ""
+						};
+
+						_loadUserData();
+
+						$scope.createUser = function() {
+							var method = "";
+							var url = "";
+							if ($scope.userForm.id == -1) {
+								method = 'POST';
+								url = '/save';
+							} else {
+								method = "PUT";
+								url = '/update';
+							}
+
+							$http({
+								method : method,
+								url : url,
+								data : angular.toJson($scope.userForm),
+								headers : {
+									'Content-Type' : 'application/json'
+								}
+							}).then(_success, _error);
+						}
+
+						$scope.resetUser = function() {
+							_clearFormData();
+						}
+
+						$scope.deleteUser = function(user) {
+							$http(
+									{
+										method : 'DELETE',
+										url : '/delete/'
+												+ user.id
+									}).then(_success, _error);
+						};
+
+						$scope.updateUser = function(user) {
+							$scope.userForm.id = user.id;
+							$scope.userForm.name = user.name;
+							$scope.userForm.diachi = user.diachi;
+						};
+
+						function _loadUserData() {
+							$http(
+									{
+										method : 'GET',
+										url : '/list'
+									}).then(
+									function(res) {
+										$scope.users = res.data;
+									},
+									function(res) {
+										console.log("Error: " + res.status
+												+ " : " + res.data);
+									});
+						}
+
+						function _success(res) {
+							_loadUserData();
+							_clearFormData();
+						}
+
+						function _error(res) {
+							var data = res.data;
+							var status = res.status;
+							var header = res.header;
+							var config = res.config;
+							alert("Error: " + status + ":" + data);
+						}
+
+						function _clearFormData() {
+							$scope.userForm.id = "-1";
+							$scope.userForm.name = "";
+							$scope.userForm.diachi = "";
+
+						}
+					});
+	</script>
